@@ -3,6 +3,7 @@ const app = express();
 // 加入這兩行
 const server = require('http').Server(app);
 const io = require('socket.io')(server);
+const records = require('./records.js');
 
 app.use(express.static('public'));
 
@@ -18,18 +19,16 @@ io.on('connection', (socket) => {
   onlineCount++;
   // 發送人數給網頁
   io.emit("online", onlineCount);
-
-  socket.on("greet", () => {
-    socket.emit("greet", onlineCount);
-  });
+  socket.emit("maxRecord", records.getMax());   // 新增記錄最大值，用來讓前端網頁知道要放多少筆
+  socket.emit("chatRecord", records.get());     // 新增發送紀錄
 
   socket.on("send", (msg) => {
     // 如果 msg 內容鍵值小於 2 等於是訊息傳送不完全
     // 因此我們直接 return ，終止函式執行。
     if (Object.keys(msg).length < 2) return;
-
+    records.push(msg);
     // 廣播訊息到聊天室
-    io.emit("msg", msg);
+    // io.emit("msg", msg);
   });
 
   socket.on('disconnect', () => {
@@ -37,6 +36,11 @@ io.on('connection', (socket) => {
     onlineCount = (onlineCount < 0) ? 0 : onlineCount -= 1;
     io.emit("online", onlineCount);
   });
+});
+
+records.on("new_message", (msg) => {
+  // 廣播訊息到聊天室
+  io.emit("msg", msg);
 });
 
 // 注意，這邊的 server 原本是 app
