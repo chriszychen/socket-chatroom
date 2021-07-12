@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-tw">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Chatroom</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    var socket = io();
+  </script>
+  <link rel="stylesheet" href="stylesheet.css">
+</head>
+
+<body>
+  <div id="container">
+    <div id="status-box">Server: <span id="status">-</span> / <span id="online">0</span> online.</div>
+    <div id="content">
+
+    </div>
+    <div id="send-box">
+      <form id="send-form">
+        <input type="text" name="name" id="name" placeholder="暱稱">
+        <input type="text" name="msg" id="msg" placeholder="說點什麼？">
+        <input type="submit" value="送出">
+      </form>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+
+      var status = document.getElementById("status");
+      var online = document.getElementById("online");
+      var sendForm = document.getElementById("send-form");
+      var content = document.getElementById("content");
+
+      socket.on("connect", function () {
+        status.innerText = "Connected.";
+      });
+
+      socket.on("disconnect", function () {
+        status.innerText = "Disconnected.";
+      });
+
+      socket.on("online", function (amount) {
+        online.innerText = amount;
+      });
+
+      socket.on("msg", function (d) {
+        var msgBox = document.createElement("div")
+        msgBox.className = "msg";
+        var nameBox = document.createElement("span");
+        nameBox.className = "name";
+        var name = document.createTextNode(d.name);
+        var msg = document.createTextNode(d.msg);
+
+        nameBox.appendChild(name);
+        msgBox.appendChild(nameBox);
+        msgBox.appendChild(msg);
+        content.appendChild(msgBox);
+      });
+
+      sendForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        var ok = true;
+        var formData = {};
+        var formChild = sendForm.children;
+
+        for (var i = 0; i < sendForm.childElementCount; i++) {
+          var child = formChild[i];
+          if (child.name !== "") {
+            var val = child.value;
+            if (val === "" || !val) {    // 如果值為空或不存在
+              ok = false;
+              child.classList.add("error");
+            } else {
+              child.classList.remove("error");
+              formData[child.name] = val;
+            }
+          }
+        }
+
+        // ok 為真才能送出
+        if (ok) socket.emit("send", formData);
+      });
+    });
+  </script>
+</body>
+
+</html>
