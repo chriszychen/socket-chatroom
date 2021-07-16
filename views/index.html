@@ -35,23 +35,23 @@
       var sendForm = document.getElementById("send-form");
       var content = document.getElementById("content");
       var nameInputBox = document.getElementById("name");
-      var name = getCookie("name");
+      // var name = getCookie("name");
 
-      if (name) {
-        nameInputBox.value = name;
-      }
-
-      // 加入新的事件監聽器  
-      socket.on("chatRecord", function (msgs) {
-        for (var i = 0; i < msgs.length; i++) {
-          (function () {
-            addMsgToBox(msgs[i]);
-          })();
-        }
-      });
+      // if (name) {
+      //   nameInputBox.value = name;
+      // }  
 
       socket.on("maxRecord", function (amount) {
         max_record = amount;
+      });
+
+      socket.on("chatRecord", function (msgs) {
+        for (var i = 0; i < msgs.length; i++) {
+          (function () {
+            console.log(msgs[i])
+            addMsgToBox(msgs[i]);
+          })();
+        }
       });
 
       socket.on("connect", function () {
@@ -95,28 +95,29 @@
         if (ok) {
           socket.emit("send", formData);
           formChild[1].value = ''
-          setCookie("name", nameInputBox.value);
+          // setCookie("name", nameInputBox.value);
         }
       });
-    });
-    // 新增訊息到方框中
-    function addMsgToBox(d) {
-      var msgBox = document.createElement("div")
-      msgBox.className = "msg";
-      var nameBox = document.createElement("span");
-      nameBox.className = "name";
-      var name = document.createTextNode(d.name);
-      var msg = document.createTextNode(d.msg);
+      // 新增訊息到方框中
+      function addMsgToBox(d) {
+        var msgBox = document.createElement("div")
+        msgBox.className = "msg";
+        var nameBox = document.createElement("span");
+        nameBox.className = "name";
+        var name = document.createTextNode(d.name);
+        var msg = document.createTextNode(d.msg);
 
-      nameBox.appendChild(name);
-      msgBox.appendChild(nameBox);
-      msgBox.appendChild(msg);
-      content.appendChild(msgBox);
+        nameBox.appendChild(name);
+        msgBox.appendChild(nameBox);
+        msgBox.appendChild(msg);
+        content.appendChild(msgBox);
 
-      if (content.children.length > max_record) {
-        rmMsgFromBox();
+        if (content.children.length > max_record) {
+          rmMsgFromBox();
+        }
       }
-    }
+    });
+
 
     // 移除多餘的訊息
     function rmMsgFromBox() {
