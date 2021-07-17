@@ -4,6 +4,7 @@ const app = express();
 const server = require('http').Server(app);
 const io = require('socket.io')(server);
 const records = require('./records.js');
+const moment = require('moment')
 
 app.use(express.static('public'));
 
@@ -11,8 +12,14 @@ let onlineCount = 0;
 let data = [];
 let MAX = 50;
 
+let users = ['Alice', 'Bob', 'Chris']
+
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/views/index.html');
+});
+
+app.get('/page', (req, res) => {
+  res.sendFile(__dirname + '/views/page.html');
 });
 
 // 當發生連線事件
@@ -23,11 +30,13 @@ io.on('connection', (socket) => {
   io.emit("online", onlineCount);
   socket.emit("maxRecord", MAX);   // 新增記錄最大值，用來讓前端網頁知道要放多少筆
   socket.emit("chatRecord", data);     // 新增發送紀錄
+  io.emit('newUserJoin', users[Math.floor(Math.random() * 3)])
 
   socket.on("send", (msg) => {
     // 如果 msg 內容鍵值小於 2 等於是訊息傳送不完全
     // 因此我們直接 return ，終止函式執行。
     if (Object.keys(msg).length < 2) return;
+    msg.time = moment(msg.time).format('YYYY-MM-DD hh:mm:ss a')
     data.push(msg);
     // 廣播訊息到聊天室
     io.emit("msg", msg);

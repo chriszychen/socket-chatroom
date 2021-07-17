@@ -54,6 +54,13 @@
         }
       });
 
+      socket.on('newUserJoin', (user) => {
+        let msgBox = document.createElement("div")
+        msgBox.className = "msg";
+        msgBox.innerText = `${user} joined.`
+        content.appendChild(msgBox);
+      })
+
       socket.on("connect", function () {
         status.innerText = "Connected.";
       });
@@ -93,6 +100,7 @@
 
         // ok 為真才能送出
         if (ok) {
+          formData['time'] = Date.now()
           socket.emit("send", formData);
           formChild[1].value = ''
           // setCookie("name", nameInputBox.value);
@@ -105,7 +113,7 @@
         var nameBox = document.createElement("span");
         nameBox.className = "name";
         var name = document.createTextNode(d.name);
-        var msg = document.createTextNode(d.msg);
+        var msg = document.createTextNode(`${d.msg} - ${d.time}`);
 
         nameBox.appendChild(name);
         msgBox.appendChild(nameBox);
@@ -116,37 +124,36 @@
           rmMsgFromBox();
         }
       }
+      // 移除多餘的訊息
+      function rmMsgFromBox() {
+        var children = content.children;
+        children[0].remove();
+      }
+
+      // 加入 Cookies
+      function setCookie(cname, cvalue, exdays) {
+        var d = new Date();
+        d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+        var expires = "expires=" + d.toUTCString();
+        document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+      }
+
+      function getCookie(cname) {
+        var name = cname + "=";
+        var ca = document.cookie.split(';');
+        for (var i = 0; i < ca.length; i++) {
+          var c = ca[i];
+          while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+          }
+          if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+          }
+        }
+        return "";
+      }
     });
 
-
-    // 移除多餘的訊息
-    function rmMsgFromBox() {
-      var children = content.children;
-      children[0].remove();
-    }
-
-    // 加入 Cookies
-    function setCookie(cname, cvalue, exdays) {
-      var d = new Date();
-      d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
-      var expires = "expires=" + d.toUTCString();
-      document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
-    }
-
-    function getCookie(cname) {
-      var name = cname + "=";
-      var ca = document.cookie.split(';');
-      for (var i = 0; i < ca.length; i++) {
-        var c = ca[i];
-        while (c.charAt(0) == ' ') {
-          c = c.substring(1);
-        }
-        if (c.indexOf(name) == 0) {
-          return c.substring(name.length, c.length);
-        }
-      }
-      return "";
-    }
   </script>
 </body>
 
