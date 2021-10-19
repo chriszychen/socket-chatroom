@@ -41,7 +41,6 @@
         nameInputBox.value = name
       }
 
-      // 加入新的事件監聽器  
       socket.on("chatRecord", function (msgs) {
         for (var i = 0; i < msgs.length; i++) {
           (function () {
